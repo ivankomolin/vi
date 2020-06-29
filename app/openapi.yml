@@ -1,0 +1,84 @@
+openapi: 3.0.0
+info:
+  title: API
+  version: '1.0'
+servers:
+  - url: http://127.0.123.1:9876/
+    description: Development server
+paths:
+  /api/v1/init:
+    get:
+      summary: Загрузка и вывод стартового набора данных
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+  /api/v1/order:
+    post:
+      summary: Создание нового заказа
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+  /api/v1/order/{id}/pay:
+    put:
+      summary: Оплата существующего заказа
+      parameters:
+      - name: id
+        in: path
+        description: ID заказа
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                amount: 
+                  description: Сумма к оплате
+                  type: number
+              required:
+               - amount
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        amount:
+          type: number

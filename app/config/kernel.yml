@@ -1,0 +1,69 @@
+services:
+    app:
+        class: stdClass
+        factory: ['@http_kernel', terminate]
+        arguments: ['@request', '@response_sended']
+        public: true
+    response:
+        class: Symfony\Component\HttpFoundation\Response
+        factory: ['@http_kernel', handle]
+        arguments: ['@request']
+    response_sended:
+        class: Symfony\Component\HttpFoundation\Response
+        factory: ['@response', send]
+    request:
+        class: Symfony\Component\HttpFoundation\Request
+        factory: [Symfony\Component\HttpFoundation\Request, createFromGlobals]
+    request_stack:
+        class: Symfony\Component\HttpFoundation\RequestStack
+    request_context:
+        class: Symfony\Component\Routing\RequestContext
+    config_locator:
+        class: Symfony\Component\Config\FileLocator
+        arguments: ['%config_dir%']
+    http_kernel:
+        class: Symfony\Component\HttpKernel\HttpKernel
+        arguments: ['@event_dispatcher', '@controller_resolver', '@request_stack']
+    router_listener:
+        class: Symfony\Component\HttpKernel\EventListener\RouterListener
+        arguments: ['@url_matcher', '@request_stack', '@request_context']
+    url_matcher:
+        class: Symfony\Component\Routing\Matcher\UrlMatcher
+        arguments: ['@routes', '@request_context']
+    routing_loader:
+        class: Symfony\Component\Routing\Loader\YamlFileLoader
+        arguments: ['@config_locator']
+    routes:
+        class: Symfony\Component\Routing\RouteCollection
+        factory: ['@routing_loader', load]
+        arguments: ['%routes%']
+    controller_resolver:
+        class: Symfony\Component\HttpKernel\Controller\ContainerControllerResolver
+        arguments: ['@service_container']
+    doctrine_config:
+        class: Doctrine\ORM\Configuration
+        factory: [Doctrine\ORM\Tools\Setup, createAnnotationMetadataConfiguration]
+        arguments: ['%entities%', '%debug%', null, null, false]
+    doctrine_entity_manager:
+        class: Doctrine\ORM\EntityManager
+        factory: [Doctrine\ORM\EntityManager, create]
+        arguments: ['%mysql_connection%', '@doctrine_config']
+        public: true
+    faker:
+        class: Faker\Generator
+        factory: [Faker\Factory, create]
+    validator:
+        class: Symfony\Component\Validator\Validator\ValidatorInterface
+        factory: ['@validator_builder', getValidator]
+    validator_builder:
+        class: Symfony\Component\Validator\ValidatorBuilder
+        factory: [Symfony\Component\Validator\Validation, createValidatorBuilder]
+        calls:
+            - [addMethodMapping, ['loadValidatorMetadata']]
+    guzzle:
+        class: GuzzleHttp\Client
+    event_dispatcher:
+        class: Symfony\Component\EventDispatcher\EventDispatcher
+        calls:
+            - [addSubscriber, ['@router_listener']]
+            - [addSubscriber, ['@app_exception_listener']]

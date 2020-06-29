@@ -1,0 +1,15 @@
+init:
+    path: /api/v1/init
+    controller: App\Controller\InitController::index
+    methods: GET
+
+order_create:
+    path: /api/v1/order
+    controller: App\Controller\OrderController::create
+    methods: POST
+
+order_pay:
+    path: /api/v1/order/{id}/pay
+    controller: App\Controller\OrderController::pay
+    methods: PUT
+

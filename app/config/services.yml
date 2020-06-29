@@ -1,0 +1,43 @@
+imports:
+    - {resource: 'kernel.yml'}
+
+parameters:
+    debug: '%env(bool:DEBUG)%'
+    routes: 'routes.yml'
+    entities: ['%root_dir%/src/Entity']
+    mysql_connection:
+        driver: 'pdo_mysql'
+        host: '%env(MYSQL_HOST)%'
+        port: '%env(MYSQL_PORT)%'
+        user: '%env(MYSQL_USER)%'
+        password: '%env(MYSQL_PASS)%'
+        dbname: '%env(MYSQL_DB)%'
+
+services:
+    App\Controller\InitController:
+        class: App\Controller\InitController
+        arguments: ['@app_init_service']
+        public: true
+    App\Controller\OrderController:
+        class: App\Controller\OrderController
+        arguments: ['@app_order_service', '@validator']
+        public: true
+
+    app_init_service:
+        class: App\Service\InitService
+        arguments: ['@doctrine_entity_manager', '@faker', '@app_product_repository']
+    app_order_service:
+        class: App\Service\OrderService
+        arguments: ['@doctrine_entity_manager', '@app_product_repository', '@app_order_repository', '@guzzle']
+
+    app_product_repository:
+        class: App\Repository\ProductRepository
+        factory: ['@doctrine_entity_manager', getRepository]
+        arguments: [App\Entity\Product]
+    app_order_repository:
+        class: App\Repository\OrderRepository
+        factory: ['@doctrine_entity_manager', getRepository]
+        arguments: [App\Entity\Order]
+
+    app_exception_listener:
+        class: App\ExceptionListener
